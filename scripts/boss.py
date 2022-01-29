@@ -58,6 +58,7 @@ animations = {
 	"idle": boss_spritesheet.load_strip((0, 0, 100, 100), 4, (0, 0, 0)),
 	"base_attack": boss_spritesheet.load_strip((0, 200, 100, 100), 9, (0, 0, 0)),
 	"super_smash": boss_spritesheet.load_strip((0, 300, 100, 100), 8, (0, 0, 0)),
+	"hell_fire": boss_spritesheet.load_strip((0, 500, 100, 100), 6, (0, 0, 0)),
 	"cooldown": boss_spritesheet.load_strip((0, 600, 100, 100), 10, (0, 0, 0))
 }
 
@@ -70,6 +71,7 @@ ATTACK_STAGES = {
 animations["idle"] = [scale_image(img, 0.5) for img in animations["idle"]]
 animations["base_attack"] = [scale_image(img, 0.5) for img in animations["base_attack"]]
 animations["super_smash"] = [scale_image(img, 0.5) for img in animations["super_smash"]]
+animations["hell_fire"] = [scale_image(img, 0.5) for img in animations["hell_fire"]]
 animations["cooldown"] = [scale_image(img, 0.5) for img in animations["cooldown"]]
 
 class Boss:
@@ -95,7 +97,7 @@ class Boss:
 		self.last_walked = 0
 		self.walk_wait_times = 200
 		self.times_to_attack = 8
-		self.smash_times = random.randint(10, 25)
+		self.smash_times = random.randint(8, 18)
 		self.smashed_times = 0
 		self.start_y = 50
 		self.moving_to_cooldown = False
@@ -103,6 +105,9 @@ class Boss:
 		self.moving_back = False
 		self.cooling_down_start = 0
 		self.low_y = SCALE_HEIGHT - 100
+		self.bombs = 0
+		# [loc, velocity, timer]
+		self.particles = []
 
 		self.max_health = 1000
 		self.health = self.max_health
@@ -168,6 +173,58 @@ class Boss:
 						self.smashed_times += 1
 						if self.smashed_times >= self.smash_times:
 							self.rect.centerx = SCALE_WIDTH / 2
+			elif self.state == HELL_FIRE:
+				if int(self.current_frame) < len(self.action) - 1:
+					self.current_frame += 0.2
+				
+				if len(self.particles) < 150 and self.bombs <= 250:
+					self.bombs += 1
+					self.particles.append(
+						[
+							[
+								random.choice(
+									[
+										random.randint(0, self.rect.x - 10),
+										random.randint(self.rect.x + self.rect.width + 10, SCALE_WIDTH)
+									]),
+								random.randint(-30, -15)
+							],
+							[random.randint(0, 20) / 10 - 1, -5],
+							random.randint(6, 10)
+						]
+					)
+				
+				if self.bombs >= 250 and len(self.particles) == 0:
+					self.state = IDLE
+					self.times_to_attack -= 1
+					self.attacking = False
+
+				for particle in self.particles:
+					particle[0][1] += 5
+					particle[2] -= 0.02
+
+					if particle[0][1] > SCALE_HEIGHT + 30:
+						self.particles.remove(particle)
+				
+				if not self.idle_move:
+					if pygame.time.get_ticks() - self.last_walked > 100:
+						if random.randint(0, 100) > 80:
+							self.idle_move = True
+							self.idle_new_x = random.randint(50, SCALE_WIDTH - 100)
+							while abs(self.rect.x - self.idle_new_x) < 50:
+								self.idle_new_x = random.randint(100, SCALE_WIDTH - 100)
+							if self.idle_new_x > self.rect.x:
+								self.facing_right = True
+							else:
+								self.facing_right = False
+				else:
+					self.rect.x += (self.idle_new_x - self.rect.x) * 0.04
+					if abs(self.rect.x - self.idle_new_x) < 30:
+						self.idle_new_x = 0
+						self.idle_move = False
+						self.last_walked = pygame.time.get_ticks()
+						self.walk_wait_times = random.randint(200, 1200)
+
 		else:
 			self.current_frame += 0.09
 			if int(self.current_frame) > len(self.action) - 1:
@@ -230,7 +287,12 @@ class Boss:
 				self.state = SUPER_SMASH
 				self.attacking = True
 				self.smashed_times = 0
-				self.smash_times = random.randint(10, 25)
+				self.smash_times = random.randint(8, 18)
+			elif attack == HELL_FIRE:
+				self.state = HELL_FIRE
+				self.attacking = True
+				self.current_frame = 0
+				self.bombs = 0
 		
 		if pygame.mouse.get_pressed()[0]:
 			self.health -= 6
@@ -242,6 +304,11 @@ class Boss:
 		else:
 			self.stage = 3
 
+	def circle_surf(self, radius, color):
+		surf = pygame.Surface((radius * 2, radius * 2))
+		pygame.draw.circle(surf, color, (radius, radius), radius)
+		surf.set_colorkey((0, 0, 0))
+		return surf
 	
 	def render(self, screen):		
 		# pygame.draw.rect(screen, (0, 255, 0), self.rect)
@@ -249,9 +316,6 @@ class Boss:
 		if not self.facing_right:
 			image = pygame.transform.flip(self.image, True, False)
 		
-		if self.state == SUPER_SMASH and int(self.current_frame) >= len(self.action) - 2:
-			outline_mask(image.copy(), (self.rect.x - self.rect.width, self.rect.y - self.rect.width), screen)
-
 		if self.stage == 2:
 			list_of_colors = [
 				["#df2828", "#28ccdf"],
@@ -282,6 +346,12 @@ class Boss:
 				text = MESSAGE_TEXT_FONT.render(self.message["text"], False, (255, 255, 255))
 				screen.blit(text, (self.rect.centerx - text.get_width()/2, self.rect.centery - 60))
 		
+		for particle in self.particles:
+			pygame.draw.circle(screen, (255, 255, 255), [int(particle[0][0]), int(particle[0][1])], int(particle[2]))
+
+			radius = particle[2] * 2
+			screen.blit(self.circle_surf(radius, (20, 150, 60)), (int(particle[0][0] - radius), int(particle[0][1] - radius)), special_flags=pygame.BLEND_RGB_ADD)
+		
 		if self.message is None and self.entered:
 			width = self.health / self.health_ratio
 			pygame.draw.rect(screen, (255, 0, 0),(SCALE_WIDTH/2 - self.health_bar_length/2, 10, width, 15))
@@ -290,4 +360,5 @@ class Boss:
 		if self.attack_hand is not None:
 			self.attack_hand.update()
 			self.attack_hand.render(screen)
+		
 
