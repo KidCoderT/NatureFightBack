@@ -1,18 +1,20 @@
-from email.message import Message
 import pygame
+
 pygame.init()
 
 SCALE_AMOUNT = 3
 WIDTH, HEIGHT = 230 * SCALE_AMOUNT, 216 * SCALE_AMOUNT
-SCALE_WIDTH, SCALE_HEIGHT = WIDTH/2, HEIGHT/2
+SCALE_WIDTH, SCALE_HEIGHT = WIDTH / 2, HEIGHT / 2
 
 MESSAGE_TEXT_FONT = pygame.font.Font("assets/font/Sabo-Filled.otf", 16)
+
 
 def scale_image(img, factor=SCALE_AMOUNT):
     size = round(img.get_width() * factor), round(img.get_height() * factor)
     img = pygame.transform.scale(img, size)
     img.convert()
     return img
+
 
 def draw_text_multilined(surface, text, color, rect, font, aa=False, bkg=None):
     rect = pygame.Rect(rect)
@@ -34,7 +36,7 @@ def draw_text_multilined(surface, text, color, rect, font, aa=False, bkg=None):
             i += 1
 
         # if we've wrapped the text, then adjust the wrap to the last word      
-        if i < len(text): 
+        if i < len(text):
             i = text.rfind(" ", 0, i) + 1
 
         # render the line and blit it to the surface
@@ -52,6 +54,7 @@ def draw_text_multilined(surface, text, color, rect, font, aa=False, bkg=None):
 
     return text
 
+
 def outline_mask(img, loc, display):
     mask = pygame.mask.from_surface(img)
     mask_outline = mask.outline()
@@ -59,4 +62,4 @@ def outline_mask(img, loc, display):
     for point in mask_outline:
         mask_outline[n] = (point[0] + loc[0], point[1] + loc[1])
         n += 1
-    pygame.draw.polygon(display,(255,255,255),mask_outline,3)
+    pygame.draw.polygon(display, (255, 255, 255), mask_outline, 3)

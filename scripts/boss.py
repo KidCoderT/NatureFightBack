@@ -1,7 +1,8 @@
-import pygame, random
-from .settings import *
-from .collisions import *
-from .spritesheets import *
+import pygame
+import random
+from settings import *
+from collisions import *
+from spritesheets import *
 
 boss_hand_spritesheet = spritesheet("assets/boss/arm_projectile_glowing.png")
 hand_attack_animations = \

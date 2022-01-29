@@ -1,11 +1,13 @@
 import pygame
 
+
 def collision_test(rect, borders):
     hit_list = []
     for tile in borders:
         if rect.colliderect(tile):
             hit_list.append(tile)
     return hit_list
+
 
 def move(rect, movement, borders):
     collision_types = {'top': False, 'bottom': False, 'right': False, 'left': False}
