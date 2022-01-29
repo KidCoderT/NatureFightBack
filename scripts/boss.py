@@ -177,20 +177,17 @@ class Boss:
 				if int(self.current_frame) < len(self.action) - 1:
 					self.current_frame += 0.2
 				
-				if len(self.particles) < 150 and self.bombs <= 250:
+				if len(self.particles) < 150 and self.bombs <= 250 and random.randint(0, 50) > 20:
 					self.bombs += 1
 					self.particles.append(
 						[
 							[
-								random.choice(
-									[
-										random.randint(0, self.rect.x - 10),
-										random.randint(self.rect.x + self.rect.width + 10, SCALE_WIDTH)
-									]),
-								random.randint(-30, -15)
+								self.rect.centerx,
+								self.rect.centery + 20
 							],
 							[random.randint(0, 20) / 10 - 1, -5],
-							random.randint(6, 10)
+							random.randint(6, 10),
+							random.randint(-15, 15),
 						]
 					)
 				
@@ -201,6 +198,7 @@ class Boss:
 
 				for particle in self.particles:
 					particle[0][1] += 5
+					particle[0][0] += particle[3]
 					particle[2] -= 0.02
 
 					if particle[0][1] > SCALE_HEIGHT + 30:
@@ -288,11 +286,23 @@ class Boss:
 				self.attacking = True
 				self.smashed_times = 0
 				self.smash_times = random.randint(8, 18)
+				self.message = {
+					"create_time": pygame.time.get_ticks(),
+					"text": "!!!!DIE!!!!",
+					"multiline": False,
+					"wait_time": 900
+				}
 			elif attack == HELL_FIRE:
 				self.state = HELL_FIRE
 				self.attacking = True
 				self.current_frame = 0
 				self.bombs = 0
+				self.message = {
+					"create_time": pygame.time.get_ticks(),
+					"text": "HELL FIRE",
+					"multiline": False,
+					"wait_time": 1200
+				}
 		
 		if pygame.mouse.get_pressed()[0]:
 			self.health -= 6
@@ -312,13 +322,13 @@ class Boss:
 	
 	def render(self, screen):		
 		# pygame.draw.rect(screen, (0, 255, 0), self.rect)
-		image = self.image
+		image = self.image.copy()
 		if not self.facing_right:
 			image = pygame.transform.flip(self.image, True, False)
 		
 		if self.stage == 2:
 			list_of_colors = [
-				["#df2828", "#28ccdf"],
+				["#df2929", "#28ccdf"],
 				["#f18a8a", "#8aebf1"],
 				["#a83939", "#3978a8"],
 			]
@@ -327,7 +337,7 @@ class Boss:
 				image.set_colorkey((0, 0, 0))
 		elif self.stage == 3:
 			list_of_colors = [
-				["#df2828", "#28ccdf"],
+				["#df2929", "#28ccdf"],
 				["#f18a8a", "#8aebf1"],
 				["#a83939", "#3978a8"],
 				["#783939", "#394778"],

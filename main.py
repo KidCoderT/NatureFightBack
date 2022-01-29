@@ -105,7 +105,7 @@ while True:
     # for border in borders:
     #     pygame.draw.rect(display, (0, 0, 0), border)
 
-    if not boss.entered:
+    if not boss.entered or boss.state == "super_smash":
         screen.blit(pygame.transform.scale(display, (WIDTH, HEIGHT)), (random.randint(-5, 5), random.randint(-5, 5)))
     else:
         screen.blit(pygame.transform.scale(display, (WIDTH, HEIGHT)),
