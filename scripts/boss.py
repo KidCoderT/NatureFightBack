@@ -1,8 +1,8 @@
 import pygame
 import random
-from settings import *
-from collisions import *
-from spritesheets import *
+from .settings import *
+from .collisions import *
+from .spritesheets import *
 
 boss_hand_spritesheet = spritesheet("assets/boss/arm_projectile_glowing.png")
 hand_attack_animations = \
@@ -237,7 +237,7 @@ class Boss:
 
 		if self.health > self.max_health * 2/3:
 			self.stage = 1
-		elif self.health > self.max_health * 2/3:
+		elif self.health > self.max_health * 1/3:
 			self.stage = 2
 		else:
 			self.stage = 3
@@ -250,7 +250,28 @@ class Boss:
 			image = pygame.transform.flip(self.image, True, False)
 		
 		if self.state == SUPER_SMASH and int(self.current_frame) >= len(self.action) - 2:
-			outline_mask(image, (self.rect.x - self.rect.width, self.rect.y - self.rect.width), screen)
+			outline_mask(image.copy(), (self.rect.x - self.rect.width, self.rect.y - self.rect.width), screen)
+
+		if self.stage == 2:
+			list_of_colors = [
+				["#df2828", "#28ccdf"],
+				["#f18a8a", "#8aebf1"],
+				["#a83939", "#3978a8"],
+			]
+			for colors in list_of_colors:
+				image = palette_swap(image, colors[1], colors[0])
+				image.set_colorkey((0, 0, 0))
+		elif self.stage == 3:
+			list_of_colors = [
+				["#df2828", "#28ccdf"],
+				["#f18a8a", "#8aebf1"],
+				["#a83939", "#3978a8"],
+				["#783939", "#394778"],
+				["#6d3232", "#302c2e"],
+			]
+			for colors in list_of_colors:
+				image = palette_swap(image, colors[1], colors[0])
+				image.set_colorkey((0, 0, 0))
 
 		screen.blit(image, (self.rect.centerx - self.image.get_width()/2, self.rect.centery - self.image.get_height()/2))
 

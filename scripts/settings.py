@@ -1,3 +1,4 @@
+from PIL import ImageColor
 import pygame
 
 pygame.init()
@@ -63,3 +64,11 @@ def outline_mask(img, loc, display):
         mask_outline[n] = (point[0] + loc[0], point[1] + loc[1])
         n += 1
     pygame.draw.polygon(display, (255, 255, 255), mask_outline, 3)
+
+
+def palette_swap(surf, old_c, new_c):
+    img_copy = pygame.Surface(surf.get_size())
+    img_copy.fill(ImageColor.getcolor(new_c, "RGB"))
+    surf.set_colorkey(ImageColor.getcolor(old_c, "RGB"))
+    img_copy.blit(surf, (0, 0))
+    return img_copy

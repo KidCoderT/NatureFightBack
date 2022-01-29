@@ -1,6 +1,6 @@
 import random
 import pygame
-from settings import *
+from .settings import *
 
 
 class LeafParticle:
